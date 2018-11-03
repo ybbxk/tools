@@ -1,0 +1,18 @@
+#!/bin/bash
+container_name="php"
+container="`docker ps -f 'name='$container_name --format '{{.Names}}'`"
+if [ "$container" != "$container_name" ];then
+    echo "$container_name container is not running!"
+    echo "exiting..."
+    exit
+fi
+
+param=$1
+if [ "$param" != "on" ];then
+    param='s/^/#/g'
+else
+    param='s/^#*//g'
+fi
+
+docker exec -i $container_name sed -i "$param" /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini;docker restart $container_name
+
