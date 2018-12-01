@@ -1,4 +1,6 @@
 #!/bin/bash
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 container_name="php"
 container="`docker ps -f 'name='$container_name --format '{{.Names}}'`"
 if [ "$container" != "$container_name" ];then
@@ -8,11 +10,20 @@ if [ "$container" != "$container_name" ];then
 fi
 
 param=$1
-if [ "$param" != "on" ];then
+pre_string="docker exec -i $container_name "
+if [ "$param" == "off" ]; then
     param='s/^/#/g'
-else
+elif [ "$param" == "on" ]; then
     param='s/^#*//g'
+else
+    status=`$pre_string php -m | grep xdebug`
+    if [ -z $status ];then
+        echo -e "xdebug is ${RED}not enable${NC}"
+    else
+        echo -e "xdebug is ${RED}enable${NC}"
+    fi
+    exit
 fi
 
-docker exec -i $container_name sed -i "$param" /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini;docker restart $container_name
+$pre_string sed -i "$param" /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini;docker restart $container_name
 
